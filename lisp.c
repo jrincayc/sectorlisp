@@ -61,7 +61,7 @@ int Cdr(int);
 int Cons(int, int);
 int Eval(int, int);
 
-Intern() {
+int Intern() {
   int i, j, x;
   for (i = 0; (x = M[i++]);) {
     for (j = 0;; ++j) {
@@ -78,7 +78,7 @@ Intern() {
   return x;
 }
 
-GetChar() {
+int GetChar() {
   int c, t;
   static char *l, *p;
   if (l || (l = p = bestlineWithHistory("* ", "sectorlisp"))) {
@@ -98,11 +98,11 @@ GetChar() {
   }
 }
 
-PrintChar(b) {
+void PrintChar(int b) {
   fputwc(b, stdout);
 }
 
-GetToken() {
+int GetToken() {
   int c, i = 0;
   do if ((c = GetChar()) > ' ') RAM[i++] = c;
   while (c <= ' ' || (c > ')' && dx > ')'));
@@ -110,26 +110,26 @@ GetToken() {
   return c;
 }
 
-AddList(x) {
+int AddList(int x) {
   return Cons(x, GetList());
 }
 
-GetList() {
+int GetList() {
   int c = GetToken();
   if (c == ')') return 0;
   return AddList(GetObject(c));
 }
 
-GetObject(c) {
+int GetObject(int c) {
   if (c == '(') return GetList();
   return Intern();
 }
 
-Read() {
+int Read() {
   return GetObject(GetToken());
 }
 
-PrintAtom(x) {
+void PrintAtom(int x) {
   int c;
   for (;;) {
     if (!(c = M[x++])) break;
@@ -137,7 +137,7 @@ PrintAtom(x) {
   }
 }
 
-PrintList(x) {
+void PrintList(int x) {
   PrintChar('(');
   PrintObject(Car(x));
   while ((x = Cdr(x))) {
@@ -153,7 +153,7 @@ PrintList(x) {
   PrintChar(')');
 }
 
-PrintObject(x) {
+void PrintObject(int x) {
   if (x < 0) {
     PrintList(x);
   } else {
@@ -161,11 +161,11 @@ PrintObject(x) {
   }
 }
 
-Print(e) {
+void Print(int e) {
   PrintObject(e);
 }
 
-PrintNewLine() {
+void PrintNewLine() {
   PrintChar('\n');
 }
 
@@ -173,26 +173,26 @@ PrintNewLine() {
 │ The LISP Challenge § Bootstrap John McCarthy's Metacircular Evaluator    ─╬─│┼
 ╚────────────────────────────────────────────────────────────────────────────│*/
 
-Car(x) {
+int Car(int x) {
   return M[x];
 }
 
-Cdr(x) {
+int Cdr(int x) {
   return M[x + 1];
 }
 
-Cons(car, cdr) {
+int Cons(int car, int cdr) {
   M[--cx] = cdr;
   M[--cx] = car;
   return cx;
 }
 
-Gc(x, m, k) {
+int Gc(int x, int m, int k) {
   return x < m ? Cons(Gc(Car(x), m, k), 
                       Gc(Cdr(x), m, k)) + k : x;
 }
 
-Evlis(m, a) {
+int Evlis(int m, int a) {
   if (m) {
     int x = Eval(Car(m), a);
     return Cons(x, Evlis(Cdr(m), a));
@@ -201,18 +201,18 @@ Evlis(m, a) {
   }
 }
 
-Pairlis(x, y, a) {
+int Pairlis(int x, int y, int a) {
   return x ? Cons(Cons(Car(x), Car(y)),
                   Pairlis(Cdr(x), Cdr(y), a)) : a;
 }
 
-Assoc(x, y) {
+int Assoc(int x, int y) {
   if (!y) return 0;
   if (x == Car(Car(y))) return Cdr(Car(y));
   return Assoc(x, Cdr(y));
 }
 
-Evcon(c, a) {
+int Evcon(int c, int a) {
   if (Eval(Car(Car(c)), a)) {
     return Eval(Car(Cdr(Car(c))), a);
   } else {
@@ -220,7 +220,7 @@ Evcon(c, a) {
   }
 }
 
-Apply(f, x, a) {
+int Apply(int f, int x, int a) {
   if (f < 0)       return Eval(Car(Cdr(Cdr(f))), Pairlis(Car(Cdr(f)), x, a));
   if (f > kEq)     return Apply(Eval(f, a), x, a);
   if (f == kEq)    return Car(x) == Car(Cdr(x)) ? kT : 0;
@@ -232,7 +232,7 @@ Apply(f, x, a) {
   if (f == kPrint) return (x ? Print(Car(x)) : PrintNewLine()), 0;
 }
 
-Eval(e, a) {
+int Eval(int e, int a) {
   int A, B, C;
   if (e >= 0)
     return Assoc(e, a);
@@ -257,7 +257,7 @@ Eval(e, a) {
 │ The LISP Challenge § User Interface                                      ─╬─│┼
 ╚────────────────────────────────────────────────────────────────────────────│*/
 
-main() {
+int main() {
   int i;
   setlocale(LC_ALL, "");
   bestlineSetXlatCallback(bestlineUppercase);
